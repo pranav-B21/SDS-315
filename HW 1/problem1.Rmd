@@ -39,10 +39,10 @@ ggplot(profs, aes(x = eval)) +
 ```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
 #Part B. Use side-by-side boxplots to show the distribution of course evaluation scores by whether or not the
 #professor is a native English speaker.
-ggplot(profs, aes(x = eval))+
+ggplot(profs, aes(x = native, y = eval))+
   geom_boxplot() + 
   labs(title="Distribution of Course Evaluation based on if the Professor is a Native Speaker") +
-  facet_wrap(~native)
+  coord_flip()
 ```
 ```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
 #Part C. Use a faceted histogram with two rows to compare the distribution of course evaluation scores for male #and female instructors.
