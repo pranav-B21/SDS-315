@@ -1,15 +1,16 @@
 ---
-title: "Homework 1"
-author: "Pranav Belligundu - SDS 315 UT Austin"
-date: "01-23-2025"
+title: "Homework 2"
+author: "Pranav Belligundu(psb898) - SDS 315 UT Austin"
+date: "https://github.com/pranav-B21/SDS-315/tree/main"
 output:
+  pdf_document:
   html_document:
     toc: true
     toc_float: true
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(fig.height=3, fig.width=4, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60))
+knitr::opts_chunk$set(fig.width=8, fig.height=5, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60))
 ```
 
 
@@ -22,27 +23,31 @@ library(stringr)
 library(kableExtra)
 ```
 
-# **Problem 1:** Beauty, or not, in the classroom
 
-### Part A
-Create a histogram to display the overall data distribution of course evaluation scores
+# **Problem 1:** Beauty, or not, in the classroom
 
 ```{r echo = FALSE, message = FALSE, warnings = FALSE}
 #reading the data for problem 1
 profs <- read_csv('profs.csv', show_col_types = FALSE)
 ```
 
-```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+
+## Part A
+
+```{r echo = FALSE, message = FALSE, warnings = FALSE, }
 #Part A. Create a histogram to display the overall data distribution of course evaluation scores
 ggplot(profs, aes(x = eval)) +
-  geom_histogram(binwidth = 0.1, fill = "blue", color = "black") +
+  geom_histogram(binwidth = 0.1, fill = "grey", color = "black") +
   labs(title = "Distribution of Evaluation of Professor Ratings",
-       x = "Eval",
+       x = "Evaluations",
        y = "Frequency")
-```
 
-### Part B
-Use side-by-side boxplots to show the distribution of course evaluation scores by whether or not the professor is a native English speaker.
+#mean(profs$eval)
+#median(profs$eval)
+```
+The x-axis represents the course evaluations scores and the y-axis is the frequency that a professor has gotten. The distribution for the course evaluations is skewed a little bit to the left, with the mean score being around 3.9 and the median being 4. 
+
+## Part B
 
 ```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
 ggplot(profs, aes(x = native, y = eval))+
@@ -51,13 +56,13 @@ ggplot(profs, aes(x = native, y = eval))+
   coord_flip() + 
   theme_minimal()
 ```
-
-### Part C
-Use a faceted histogram with two rows to compare the distribution of course evaluation scores for male #and female instructors.
+The x-axis represents if the professor was a native English speaker or not and the y-axis is the course evaluations score received. Based on the box plots, we can see that professors who are native English speakers received higher course evaluation scores than the professors that were non-native English speakers.                
+     
+## Part C
 
 ```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
 ggplot(profs, aes(x = eval)) +
-  geom_histogram(binwidth = 0.1, fill = "blue", color = "black") +
+  geom_histogram(binwidth = 0.1, fill = "grey", color = "black") +
   labs(title = "Distribution of Professor Course Evaluations",
        x = "Course Evaluations",
        y = "Frequency") +
@@ -65,14 +70,17 @@ ggplot(profs, aes(x = eval)) +
   theme_minimal()
 ```
 
-### Part D
-Create a scatterplot to visualize the extent to which there may be an association between the professor’s physical attractiveness (x) and their course evaluations (y).
+The x-axis represents the course evaluations scores and the y-axis is the frequency that a professor
+has received a score in that range with the graphs faceted by male and female instructors. Based the histograms, we can see that male professors received higher course evaluation than female
+professors. 
+
+## Part D
 
 ```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
 #Part D
 ggplot(profs, aes(x = beauty, y = eval)) +
   geom_point(alpha = 0.6) +
-  geom_smooth(method = "lm", se = FALSE, color = "blue") + # Add line of best fit
+  geom_smooth(method = "lm", se = FALSE, color = "grey") + # Add line of best fit
   labs(title = "Relationship between Professor’s Physical Attractiveness and Course Evaluations",
        x = "Physical Attractiveness",
        y = "Course Evaluations") +
@@ -82,17 +90,16 @@ ggplot(profs, aes(x = beauty, y = eval)) +
 ```{r echo = FALSE, message = FALSE, warnings = FALSE}
 correlation <- cor(profs$beauty, profs$eval) 
 ```
-The correlation between the professor’s physical attractiveness and course evaluations is `r cor(profs$beauty, profs$eval)`. This shows that there is no correlation and there is no basis for an invdividual to believe that physical attractiveness does actually correlate with course evaluations.
+The correlation between the professor’s physical attractiveness and course evaluations is `r cor(profs$beauty, profs$eval)` which is a small positive correlation. This shows that there is no correlation and there is no basis for an invdividual to believe that physical attractiveness does actually correlate with course evaluations.
 
-# **Problem 2:** bike sharing
+# **Problem 2:** Bike Sharing
 
 ```{r echo = FALSE, message = FALSE, warnings = FALSE}
 #reading the data for problem 2
 bikes <- read_csv('bikeshare.csv', show_col_types = FALSE)
 ```
 
-### Plot A
-A line graph showing average hourly bike rentals (total) across all hours of the day (hr).
+## Plot A
 
 ```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
 #aggregate the data by hour and calculate the average total bike rentals
@@ -107,10 +114,9 @@ ggplot(hourly_averages, aes(x = hr, y = average_rentals)) +
        y = "Average Total Rentals") +
   theme_minimal()
 ```
+The y-axis represents the counts for the average number of bike rentals and the x-axis represents each hour of the day. The graph shows clear peaks at around 8 AM and 5 PM which corresponds to normal commuting hours for those who go to work. This shows how bike rentals are driven by commuting patterns.
 
-### Plot B
-A faceted line graph showing average bike rentals by hour of the day, faceted according to
-whether it is a working day (workingday).
+## Plot B
 
 ```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
 #grouping the data
@@ -129,9 +135,10 @@ ggplot(hourly_averages_byworkingday, aes(x = hr, y = average_rentals)) +
        y = "Average Total Rentals") +
   theme_minimal()
 ```
+The y-axis represents the counts for the average number of bike rentals and the x-axis represents each hour of the day which is faceted by working days (top) and non-working days (bottom). On working days, the rentals peak during commuting hours (8 AM and 5 PM). During non-working days, there is a small peak and decline around midday peak due to users using the rentals for fun.
 
-### Plot C
-A faceted bar plot showing average ridership (y) during the 9 AM hour by weather situation code (weathersit, x), faceted according to whether it is a working day or not. (Remember that you can focus on a specific subset of rows of a data set using filter.)
+
+## Plot C
 
 ```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
 bike_9 <- filter(bikes, hr == 9)
@@ -150,6 +157,7 @@ ggplot(hourly_averages_byworkingday, aes(x = as.factor(weathersit), y = average_
   theme_minimal()
 
 ```
+This is a bar plot that shows the average number of bike rentals in the y-axis at 9 AM for different weather situations shown by the different colors. which is faceted by working days and non-working days. We can see that ridership decreases as weather conditions worsen and this effect is more evident during working days. This shows that weather significantly impacts morning commutes.
 
 # **Problem 3:** Capital Metro UT Ridership
 
@@ -165,8 +173,7 @@ levels=c("Sep", "Oct","Nov")))
 
 ```
 
-### Plot 1
-One faceted line graph that plots average boardings by hour of the day, day of week, and month. You should facet by day of week. Each facet should include three lines of average boardings (y) by hour of the day (x), one line for each month and distinguished by color
+## Plot 1
 
 ```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
 capmetro_avg <- group_by(capmetro_UT, hour_of_day, day_of_week, month)
@@ -181,9 +188,9 @@ ggplot(average_boardings, aes(x = hour_of_day, y = average_boardings, colour = a
        colour = "Month") +
   theme_minimal()
 ```
-### Plot 2
-One faceted scatter plot showing boardings (y) vs. temperature (x), faceted by hour of the day, and
-with points colored in according to whether it is a weekday or weekend
+This line graph shows the average boardings by hour of the day faceted by each day of the week with separate lines for each month. The hour of peak boardings is generally consistent occurring in the morning around 8 AM and evening around 5 PM. Lower average boardings during Mondays in September and Wed/Thu/Fri in November might indiciate holidays and days off.
+
+## Plot 2
 
 ```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
 ggplot(capmetro_UT, aes(x = temperature, y = boarding, colour = weekend)) +
@@ -195,10 +202,13 @@ ggplot(capmetro_UT, aes(x = temperature, y = boarding, colour = weekend)) +
        colour = "Day Type") +
   theme_minimal()
 ```
+This scatter plot shows the relationship between boardings and temperature, faceted by hour of the day.
+Points are colored based on whether it is a weekend or a weekday where the red represents a weekday and blue represents a weekend. We can see that temperature appears to have a noticeable effect on boardings where a higher temperature correlates with higher ridership, especially during midday hours.
+
 
 # **Problem 4:** Wrangling the Billboard Top 10
 
-## **Part. A**
+## Part A
 
 ```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
 #reading the data for problem 3
@@ -212,9 +222,14 @@ top_ten_weeks <- summarise(top_ten, total_weeks= sum(week))
 top_ten_weeks <- arrange(top_ten_weeks, desc(total_weeks))
 table <- head(top_ten_weeks,10)
 
-kable(table, format = "html", caption = "Top 10 Most Popular Songs on Billboard Top 100 Since 1958")
+table <- kable(table,col.names= c("Song", "Performer", "Total Weeks"),caption = "Top 10 Songs by Total Weeks on Billboard Top 100")
+
+kable_styling(table,bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE, position = "center")
 ```
-## **Part. B**
+
+This table above shows the top 10 most popular songs since 1958 which is ranked by the total number of weeks spent on the Billboard Top 100 chart. Columns include the song title, performer, and total count of weeks on the chart
+
+## Part B
 
 ```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
 mus_diversity <- filter(billboards, year != 1958 & year != 2021)
@@ -229,7 +244,10 @@ ggplot(mus_diversity) +
   theme_minimal()
 
 ```
-## **Part. C**
+The x-axis represents the year and the y-axis represents the number of unique songs. This line graph shows the musical diversity of the Billboard Top 100 from 1959 to 2020 wehre diversity is measured
+by how many new, unique songs enter any position on the chart each year. 
+
+## Part C
 
 ```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
 ten_week_hit <- group_by(week_sub, song, performer)
@@ -240,6 +258,8 @@ ten_week_hit <- group_by(ten_week_hit,performer)
 ten_week_hit <- summarise(ten_week_hit,songs=length(song))
 ten_week_hit <- filter(ten_week_hit,songs >= 30)
 
-ggplot(ten_week_hit) + geom_col(aes(fct_reorder(performer,songs),songs),fill="blue",color="black") + coord_flip() + theme_minimal() + labs(title="Artists with 30 Plus Ten Week Hits",y="Songs",x="Artists")
+ggplot(ten_week_hit) + geom_col(aes(fct_reorder(performer,songs),songs),fill="grey",color="black") + coord_flip() + theme_minimal() + labs(title="Artists with 30 Plus Ten Week Hits",y="Songs",x="Artists")
 
 ```
+
+The x-axis represents the number of ten-weeks hits and the y-axis represents the artist. This bar graph shows 19 artists who have had at least 30 songs that appeared on the Billboard Top 100 for at least 10 weeks. 
