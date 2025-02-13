@@ -1,7 +1,7 @@
 ---
-title: "Homework 2"
+title: "Homework 3"
 author: "Pranav Belligundu(psb898) - SDS 315 UT Austin"
-date: "https://github.com/pranav-B21/SDS-315/tree/main"
+date: "https://github.com/pranav-B21/SDS-315/tree/main/HW%203"
 output:
   pdf_document:
   html_document:
@@ -9,26 +9,271 @@ output:
     toc_float: true
 ---
 
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+	fig.height = 5,
+	fig.width = 8,
+	warning = FALSE,
+	tidy = TRUE,
+	tidy.opts = list(width.cutoff = 60)
+)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r echo = FALSE, message = FALSE, warnings = FALSE}
+#libraries
+library(ggplot2)
+library(rvest)
+library(tidyverse)
+library(stringr)
+library(kableExtra)
+library(mosaic)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+# **Problem 1**
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r echo = FALSE, message = FALSE, warnings = FALSE}
+#reading the data for problem 1
+gas <- read_csv('gasprices.csv', show_col_types = FALSE)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### **Part A** - Gas stations charge more if they lack direct competition in sight
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+#create a barplot that is faceted by yes/no for competitors
+ggplot(gas, aes(x=Competitors, y= Price)) + 
+  geom_boxplot(fill = "light green", color = "grey6") + 
+  labs(x = "Competitors", y = "Price ($)") +
+  theme_minimal() 
+
+gas$competitor_bool <- (gas$Competitors == "Y")
+
+boot_competitors = do(10000)* diffmean(Price ~ competitor_bool, data=resample(gas))
+confint(boot_competitors, level = 0.95)
+```
+##### Claim
+The hypothesis is that gas stations with no direct competitors in sight tend to charge higher prices than those with visible competition. This assumes that stations with no nearby competitors face less price pressure and can increase prices without losing customers.
+
+#####  Evidence
+The 95% confidence interval for the difference in mean price between stations with and without competitors is (-0.0557, 0.0076), with an estimated mean difference of -0.0235. Additionally, the boxplots show that while gas stations without competitors have a slightly higher median price, there is a lot of overlap in the price distributions. Shows that competitors dont affect much.
+
+#####  Conclusion
+Since the confidence interval includes zero, there is no statistically significant difference, meaning gas stations without competition do not consistently charge higher prices. This, the data does not support the theory that gas stations charge significantly higher prices when they lack direct competition.
+
+
+### **Part B** - The richer the area, the higher the gas prices
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+#create a barplot that is faceted by rich areas
+summary(gas$Income) #3rd quarter is 70000, thus we will assume that this is high income
+
+gas <- mutate(gas,is_high= Income > 70000)
+
+ggplot(gas, aes(x=is_high, y= Price)) + 
+  geom_boxplot(fill = "light green", color = "grey6") + 
+  labs(x = "Is High Income", y = "Price ($)") +
+  theme_minimal() 
+
+boot_income = do(10000) * diffmean(Price ~ is_high , data=resample(gas))
+confint(boot_income, level = 0.95)
+```
+##### Claim
+The hypothesis is that gas stations located in high-income areas tend to charge higher prices compared to those in lower-income areas, possibly due to greater willingness to pay or higher operating costs.
+
+##### Evidence
+The 95% confidence interval for the difference in mean price between stations in high-income and low-income areas is (0.0114, 0.0857), with an estimated mean difference of 0.0492. Since the confidence interval does not include zero, this suggests a statistically significant price difference, meaning stations in high-income areas tend to charge higher prices. Additionally, the boxplots show that gas prices in high-income areas have a higher median and overall distribution compared to lower-income areas.
+
+##### Conclusion
+The data supports the theory that gas stations in high-income areas charge higher prices. The statistically significant difference and the clear trend in the boxplots suggest that gas stations in wealthier areas have systematically higher gas prices.
+
+### **Part C** - Gas stations at stoplights charge more.
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+#create a barplot that is faceted by gastations at stoplights
+gas$stoplight_bool <- as.numeric(gas$Stoplight == "Y")
+
+ggplot(gas, aes(x=Stoplight, y= Price)) + 
+  geom_boxplot(fill = "light green", color = "grey6") + 
+  labs(x = "Is at Stoplight", y = "Price ($)") +
+  theme_minimal() 
+
+boot_comp = do(10000) * diffmean(Price ~ stoplight_bool, data=resample(gas))
+confint(boot_comp, level = 0.95)
+```
+##### Claim
+The hypothesis is that gas stations located at stoplights charge higher prices possibly because they they benefit due to convenience for drivers who might be more likely to stop and refuel.
+
+##### Evidence
+The 95% confidence interval for the difference in mean price between stations at stoplights and those not at stoplights is (-0.0377, 0.0306), with an estimated mean difference of -0.0033. Since the confidence interval includes zero, there is no statistically significant difference, suggesting that gas stations at stoplights do not consistently charge higher prices. Additionally, the boxplots show overlapping distributions, reinforcing the lack of a clear price difference between stations at stoplights and those that are not.
+
+##### Conclusion
+The data does not support the theory that gas stations at stoplights charge higher prices. The results indicate that being located at a stoplight does not have a significant impact on gas prices.
+
+
+### **Part D** - Gas stations with direct highway access charge more
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+#create a barplot that is faceted by gastations at stoplights
+ggplot(gas, aes(x=Highway, y= Price)) + 
+  geom_boxplot(fill = "light green", color = "grey6") + 
+  labs(x = "Is at Stoplight", y = "Price ($)") +
+  theme_minimal() 
+
+gas$highway_bool <- as.numeric(gas$Highway == "Y")
+
+boot_comp = do(10000) * diffmean(Price ~ highway_bool, data=resample(gas))
+confint(boot_comp, level = 0.95)
+```
+##### Claim
+The hypothesis is that gas stations located at stoplights charge higher prices due to it being easy to exit and refuel.
+
+##### Evidence
+The 95% confidence interval for the difference in mean price between stations at stoplights and those not at stoplights is (0.0090, 0.0811), with an estimated mean difference of 0.0457. Since the confidence interval does not include zero, this suggests a statistically significant price difference, meaning stations at stoplights tend to charge higher prices. Additionally, the boxplots show that gas stations at stoplights have a higher median price and an overall higher price distribution compared to those not at stoplights, further supporting the claim.
+
+##### Conclusion
+The data supports the theory that gas stations at stoplights charge higher prices. The statistically significant difference and the boxplot trend suggest that gas stations at stoplights do indeed have higher prices on average.
+
+### **Part E** - Gas stations with direct highway access charge more
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+#create a barplot that is faceted by gastations at stoplights
+gas$is_shell <- gas$Brand == "Shell"
+
+ggplot(gas, aes(x=is_shell, y= Price)) + 
+  geom_boxplot(fill = "light green", color = "grey6") + 
+  labs(x = "Is Shell", y = "Price ($)") +
+  theme_minimal() 
+
+boot_comp = do(10000) * diffmean(Price ~ is_shell, data=resample(gas))
+confint(boot_comp, level = 0.95)
+```
+
+##### Claim
+The hypothesis is that Shell gas stations charge higher prices compared to non-Shell stations.
+
+##### Evidence
+The 95% confidence interval for the difference in mean price between Shell and non-Shell stations is (-0.0089, 0.0663), with an estimated mean difference of 0.0274. Since the confidence interval includes zero, thus there is no statistically significant difference. Additionally, the boxplots show some overlap in price distributions, though Shell stations tend to have a slightly higher median price.
+
+##### Conclusion
+The data does not provide strong evidence that Shell gas stations charge significantly higher prices. While there is a slight increase in median prices at Shell stations, there is a lack of statistical significance that can be due to random variance.
+
+# **Problem 2**
+
+```{r echo = FALSE, message = FALSE, warnings = FALSE}
+#reading the data for problem 2
+sclass <- read_csv('sclass.csv', show_col_types = FALSE)
+```
+
+
+### **Part A** 
+Filter the data set down to include only those cars where year == 2011 and trim == "63 AMG".
+Based on these 116 cars, compute a 95% bootstrap confidence interval for the average mileage of 2011 S-Class
+63 AMGs that were hitting the used-car market when this data was collected.
+
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+part_A <- filter(sclass,year == 2011 & trim == "63 AMG")
+boot_2011_AMG = do(10000)* mean(~ mileage, data=resample(part_A))
+confint(boot_2011_AMG, level = 0.95)
+```
+
+### **Part B**
+Filter the data set down to include only those cars where year == 2014 and trim == "550". Based
+on this sample of 2889 cars, compute a 95% bootstrap confidence interval for the proportion of all 2014
+S-Class 550s that were painted black. Hint: you might find this easiest if you use mutate to first define a new
+variable, isBlack, that is either TRUE or FALSE depending on whether the car is black.
+
+
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+part_B <- filter(sclass,year == 2014 & trim == "550")
+part_B <- mutate(part_B, isBlack = color=="Black")
+boot_2014_550 = do(10000)* prop(~ isBlack, data=resample(part_B))
+confint(boot_2014_550, level = 0.95)
+```
+# **Problem 3**
+```{r echo = FALSE, message = FALSE, warnings = FALSE}
+#reading the data for problem 3
+nbc <- read_csv('nbc_pilotsurvey.csv', show_col_types = FALSE)
+```
+
+### **Part A**
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+P3_both1 <- filter(nbc, Show == "Living with Ed" | Show == "My Name is Earl")
+
+boot_both <- do(10000) * diffmean(Q1_Happy ~ Show, data = resample(P3_both1))
+confint(boot_both, level = 0.95)
+```
+##### Question:  
+Consider the shows “Living with Ed” and “My Name is Earl.” Who makes people happier: Ed or
+Earl?
+
+##### Approach: 
+Used bootstrapping to estimate the difference in mean Q1_Happy responses between the two shows. Specifically, we performed 10,000 resamples and calculated the difference in means for each resample. A 95% confidence interval was then constructed for this difference.
+
+##### Results:  
+The 95% confidence interval for the difference in mean happiness ratings (Living with Ed - My Name is Earl) is [-0.3892, 0.1005], with an estimated mean difference of -0.1491. 
+
+##### Conclusion:   
+Since this confidence interval includes zero, we do not have strong statistical evidence that one show produces a significantly higher mean happiness response than the other.
+
+
+### **Part B**
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+P3_both2 <- filter(nbc, Show == 'The Biggest Loser' | Show == 'The Apprentice: Los Angeles')
+
+boot_both2 <- do(10000) * diffmean(Q1_Annoyed ~ Show, data = resample(P3_both2))
+confint(boot_both2, level = 0.95)
+```
+##### Question:  
+Consider the shows “The Biggest Loser” and “The Apprentice: Los Angeles.” Which reality/contest show made people feel more annoyed? Earl?
+
+##### Approach: 
+Used bootstrapping to estimate the difference in mean Q1_Annoyed responses between the two shows. We performed 10,000 resamples and calculated the difference in means for each resample. A 95% confidence interval was then constructed for this difference.
+
+##### Results:  
+The 95% confidence interval for the difference in mean annoyance ratings (The Biggest Loser - The Apprentice: Los Angeles) is [-0.5241, -0.0127], with an estimated mean difference of -0.2710.
+
+##### Conclusion:   
+Since the confidence interval does not include zero and is entirely negative, this suggests that The Apprentice: Los Angeles has a significantly higher mean annoyance rating than The Biggest Loser.
+
+### **Part C**
+```{r echo=FALSE, warning=FALSE, message=FALSE, fig.width=8, fig.height=5}
+P3_dancing <- filter(nbc, Show == "Dancing with the Stars")
+
+prop_confusing <- mean(P3_dancing$Q2_Confusing >= 4)
+boot_confusing <- do(10000) * mean(resample(P3_dancing)$Q2_Confusing >= 4)
+
+confint(boot_confusing, level = 0.95)
+```
+##### Question:  
+What proportion of American TV watchers would be expected to give a response of 4 or greater to the Q2_Confusing question for Dancing with the Stars?
+
+##### Approach: 
+Calculated the proportion of viewers who rated the show as confusing and used bootstrapping (10,000 resamples) to construct a 95% confidence interval for this proportion.
+
+##### Results:  
+The estimated proportion of viewers who found Dancing with the Stars confusing is 0.0773 (7.73%). The 95% confidence interval for this proportion is [0.0387, 0.1160].
+
+##### Conclusion:   
+This means we estimate that between 3.87% and 11.60% of all American TV viewers would agree or strongly agree that Dancing with the Stars is confusing. Based on this analysis, a relatively small but notable proportion of viewers (around 7.73%) found Dancing with the Stars confusing.
+
+# **Problem 4**
+```{r echo = FALSE, message = FALSE, warnings = FALSE}
+#reading the data for problem 3
+ebay <- read_csv('ebay.csv', show_col_types = FALSE)
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, fig.width=8, fig.height=5}
+ebay$rev_ratio <- (ebay$rev_after / ebay$rev_before)
+
+boot_ebay <- do(10000) * diffmean(rev_ratio ~ adwords_pause, data = resample(ebay))
+confint(boot_ebay)
+```
+
+##### Question:  
+Does EBay’s paid search advertising on Google generate additional revenue, or would the company see similar revenue levels by relying on organic search results?
+
+##### Approach: 
+Calculated the revenue ratio (revenue after / revenue before) for each DMA and compared the treatment group to the control group. Using bootstrapping with 10,000 Monte Carlo simulations, we estimated the difference in mean revenue ratios between these two groups and constructed a 95% confidence interval.
+
+##### Results:  
+The estimated mean difference in revenue ratio (Treatment - Control) is -0.0523. The 95% confidence interval for this difference is [-0.0910, -0.0138].
+
+##### Conclusion:   
+These results provide statistical evidence that paid search advertising contributes to increased revenue for EBay. Since the confidence interval does not include zero and is fully negative, this indicates that turning off paid ads had a significant negative impact on revenue.
