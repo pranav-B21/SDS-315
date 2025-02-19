@@ -1,0 +1,181 @@
+---
+title: "Homework 4"
+author: "Pranav Belligundu(psb898) - SDS 315 UT Austin"
+date: "https://github.com/pranav-B21/SDS-315/tree/main/HW%203"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	fig.height = 5,
+	fig.width = 8,
+	warning = FALSE,
+	tidy = TRUE,
+	tidy.opts = list(width.cutoff = 60)
+)
+```
+
+```{r echo = FALSE, message = FALSE, warnings = FALSE}
+#libraries
+library(ggplot2)
+library(rvest)
+library(tidyverse)
+library(stringr)
+library(kableExtra)
+library(mosaic)
+```
+
+# **Problem 1: Iron Bank**
+
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+# Simulate null hypothesis distribution
+sim_flags <- do(100000) * nflip(n = 2021, prob = 0.024) #given the #of trades and %flagged according to the baseline rate
+
+#calc p-value
+p_value <- mean(sim_flags >= 70)
+
+#graph
+ggplot(sim_flags) +
+  geom_histogram(aes(x = nflip), binwidth = 2, fill = "light green", color = "black") +
+  geom_vline(xintercept = 70, color = "red", linetype = "dashed", size = 1) +
+  labs(title = "Simulated Flagged Trades",
+       x = "Number of Flagged Trades",
+       y = "Frequency") +
+  theme_minimal()
+
+#print result
+cat("P-value:", p_value, "\n")
+```
+**Null Hypothesis:** the proportion of flagged trades actually follow the baseline provided of 2.4%
+
+**Test statistic:** The number of flagged trades(observed 70), p-value test
+
+**Simulation details:** Simulates 100,000 trials of 2021 trades. Each trade has 2.4% probability of being flagged. Using nflip() from mosaic package for binomial simulations with the given n value and the prob.
+
+**Conclusion:** since the p_value = 0.00208 < 0.05, we can reject the null hypothesis. This suggests that the trading activity at Iron Bank is not consistent with normal market behavior and the number of flagged trades(70 out of 2021) is way more than actual.
+
+
+# **Problem 2: Health Inspections**
+
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+#simulate null hypothesis distribution
+sim_violations <- do(100000) * nflip(n = 50, prob = 0.03)
+
+#calculate p-value
+p_value <- mean(sim_violations >= 8)
+
+#graph
+ggplot(sim_violations) +
+  geom_histogram(aes(x = nflip), binwidth = 1, fill = "light green", color = "black") +
+  geom_vline(xintercept = 8, color = "red", linetype = "dashed", size = 1) +
+  labs(title = "Simulated Health Code Violations",
+       x = "Number of Violations",
+       y = "Frequency") +
+  theme_minimal()
+
+#print result
+cat("P-value:", p_value, "\n")
+```
+**Null Hypothesis:** the true rate of health code violations at Gourmet Bites is equal to the citywide baseline rate of 3%
+
+**Test statistic:** The number of inspections (observed 50), p-value test
+
+**Simulation details:** Simulates 100,000 trials of 50 inspections Each inspection has 3% probability of being labeled as a health code violation. Using nflip() from mosaic package for binomial simulations with the given n value and the prob.
+
+**Conclusion:** since the p_value = 0.00012 < 0.05, we can reject the null hypothesis. This suggests that the rate of health code violations at Gourmet Bites is significantly higher than the citywide baseline rate of 3%. The observed number of violations (8 out of 50 inspections) is highly unlikely to occur due to random chance alone.
+
+# **Problem 3: Evaluating Jury Selection for Bias**
+
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+observed_counts <- c(85, 56, 59, 27, 13)
+proportions <- c(0.30, 0.25, 0.20, 0.15, 0.10)
+
+chi_square_test <- chisq.test(x = observed_counts, p = proportions)
+
+p_value <- pchisq(12.43, df = 4, lower.tail = FALSE)
+
+# Print test results
+print(chi_square_test)
+```
+**Null Hypothesis:** the true rate of health code violations at Gourmet Bites is equal to the citywide baseline rate of 3%
+
+**Test statistic:** Chi-Square Goodness-of-Fit Test
+
+**Simulation Details:** chisq.test solves the simulation for us so that there is no need to manually calcualte the expected and original counts. We get a chisq value of 12.43 and the degrees of freedom(df) df = 5 − 1 = 4. Using these 2 values we can determine the p-value for this statistic.
+
+**Conclusion:** since the p-value = 0.015 < 0.05. There is significant evidence that the distribution of empaneled jurors does not match the county’s population. This suggests potential bias.
+
+# **Problem 4: LLM Watermarking**
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+#PART A
+brown_sentences <- readLines("brown_sentences.txt")
+letter_freq <- read.csv("letter_frequencies.csv")
+
+# Remove non-letters and convert to uppercase
+clean_text = gsub("[^A-Za-z] ", "", brown_sentences)
+clean_text = toupper(clean_text)
+
+compute_chi_squared <- function(text) {
+  letters <- unlist(strsplit(text, ""))
+  letter_counts <- table(letters)  # Count occurrences
+  all_letters <- LETTERS  # A-Z
+  observed <- as.numeric(letter_counts[match(all_letters, names(letter_counts))])
+  observed[is.na(observed)] <- 0  # Replace NA with 0
+  expected <- letter_freq$Probability * sum(observed)  # Expected letter counts
+
+  # Perform chi-squared test (if expected counts > 0)
+  if (sum(observed) > 0) {
+    test_result <- chisq.test(x = observed, p = letter_freq$Probability)
+    return(test_result$statistic)  # Return chi-squared value
+  } else {
+    return(NA)  # Avoid errors for empty input
+  }
+}
+
+# Compute null distribution from Brown Corpus
+chi_squared_values <- sapply(clean_text, compute_chi_squared, USE.NAMES = FALSE)
+
+#PART B
+# Load test sentences
+test_sentences <- c(
+  "She opened the book and started to read the first chapter, eagerly anticipating what might come next.",
+  "Despite the heavy rain, they decided to go for a long walk in the park, crossing the main avenue by the fountain in the center.",
+  "The museum’s new exhibit features ancient artifacts from various civilizations around the world.",
+  "He carefully examined the document, looking for any clues that might help solve the mystery.",
+  "The students gathered in the auditorium to listen to the guest speaker’s inspiring lecture.",
+  "Feeling vexed after an arduous and zany day at work, she hoped for a peaceful and quiet evening at home, cozying up after a quick dinner with some TV, or maybe a book on her upcoming visit to Auckland.",
+  "The chef demonstrated how to prepare a delicious meal using only locally sourced ingredients, focusing mainly on some excellent dinner recipes from Spain.",
+  "They watched the sunset from the hilltop, marveling at the beautiful array of colors in the sky.",
+  "The committee reviewed the proposal and provided many points of useful feedback to improve the project’s effectiveness.",
+  "Despite the challenges faced during the project, the team worked tirelessly to ensure its successful completion, resulting in a product that exceeded everyone’s expectations."
+)
+
+# Compute chi-squared for test sentences
+test_chi_squared <- sapply(test_sentences, compute_chi_squared, USE.NAMES = FALSE)
+
+# Compute p-values by comparing test sentences to the null distribution
+p_values <- sapply(test_chi_squared, function(x) mean(chi_squared_values >= x, na.rm = TRUE))
+p_value_table <- data.frame(
+  Sentence_ID = 1:length(p_values),  # Assign sentence IDs
+  P_Value = round(p_values, 3)  # Round p-values to 3 decimal places
+)
+kable(p_value_table, col.names = c("Sentence ID", "P-Value"), digits = 3)
+
+# Create and display results dataframe
+results <- data.frame(
+  Sentence = test_sentences,
+  Chi_Squared_Value = test_chi_squared,
+  P_Value = round(p_values, 3)
+)
+
+# Print results
+#print(results)
+```
+Given the chi-squared results and the p-value, I believe the sentence that is likely produced by an LLM with a watermark is Sentence 6: "Feeling vexed after an arduous and zany day at work, she hoped for a peaceful and quiet evening at home, cozying up after a quick dinner with some TV, or maybe a book on her upcoming visit to Auckland." 
+
+The sentence has the highest chi-squared value of 39.04543. This suggests that the letter frequency distribution deviates more from the expected natural English distribution. The sentence also has a relatively low The p-value for this sentence is 0.132, meaning that only about 13.2% of the naturally occurring sentences in the Brown Corpus have such extreme letter frequency distributions. Even thought it isnt an extreme outlier (< 0.05), it is still much lower than most other sentences.
