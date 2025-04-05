@@ -74,6 +74,7 @@ ggplot(gas, aes(x=is_high, y= Price)) +
   labs(x = "Is High Income", y = "Price ($)") +
   theme_minimal() 
 
+#diffmean(Price ~ is_high, data = gas)
 boot_income = do(10000) * diffmean(Price ~ is_high , data=resample(gas))
 confint(boot_income, level = 0.95)
 ```
