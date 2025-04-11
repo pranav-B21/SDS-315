@@ -1,0 +1,134 @@
+---
+title: "Homework 8"
+author: "Pranav Belligundu(psb898) - SDS 315 UT Austin"
+date: "insert link"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	fig.height = 5,
+	fig.width = 8,
+	warning = FALSE,
+	tidy = TRUE,
+	tidy.opts = list(width.cutoff = 60)
+)
+```
+
+
+```{r echo = FALSE, message = FALSE, warnings = FALSE}
+#libraries
+library(ggplot2)
+library(rvest)
+library(tidyverse)
+library(stringr)
+library(kableExtra)
+library(mosaic)
+```
+
+# **Problem 1: regression warm up**
+### A. Load and examine the data
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+creatinine <- read.csv('creatinine.csv')
+
+model <- lm(creatclear ~ age, data = creatinine)
+
+summary(model)
+
+#A
+predict(model, data.frame(age = 55))
+
+#B
+coef(model)["age"]
+
+#C
+pred_40 <- predict(model, data.frame(age = 40)) #predicted vals
+pred_60 <- predict(model, data.frame(age = 60))
+actual_40 <- 135 #actual vals
+actual_60 <- 112
+
+#diffs
+diff_40 <- actual_40 - pred_40
+diff_60 <- actual_60 - pred_60
+
+diff_40
+diff_60
+```
+### A
+The expected value for a 55-year old is 133.72(mL/minute) clearance rate and I calcualted this through the lm function which gives me the intercept and the slope --> clearance rate = -0.6198159(age) + 147.81292. 
+
+### B
+For each increase in age by one, the creatine clearance rate decreases by -0.6198159 and this is the slope of the lin reg model.
+
+### C
+The difference in creatine rate for the 40 year old with a rate of 135 is 11.97 and the difference in creatine rate for the 60 year old with a rate of 112 is 1.38. Because the differnce of the 40 year old is higher, they are more healthier for their age. I determined this by using the model to predict it based on their ages and subtracted the actual rate to find the difference. 
+
+# **Problem 2: Modeling disease growth**
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+covid <- read.csv('covid.csv')
+
+italy_data <- covid[covid$country == 'Italy',]
+
+#model
+covid_model_italy <- lm(log(deaths) ~ days_since_first_death, data = italy_data)
+boot_covid_model_italy = do(10000)*lm(log(deaths) ~ days_since_first_death, data = resample(italy_data))
+confint(boot_covid_model_italy, level = 0.95)
+
+#growth rate
+growth_rate_italy <- coef(covid_model_italy)["days_since_first_death"]
+
+#doubling time
+doubling_time_italy_l <- log(2) / 0.1586809 #lower
+doubling_time_italy_u <- log(2) / 0.2078943 #upper
+
+```
+Italy: The growth rate with a 95% CI is between 0.159 and 0.208. The doubling time with a 95% CI is between 4.4 and 3.3 days. 
+
+
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+spain_data <- covid[covid$country == 'Spain',]
+
+#model
+covid_model_spain <- lm(log(deaths) ~ days_since_first_death, data = spain_data)
+boot_covid_model_spain = do(10000)*lm(log(deaths) ~ days_since_first_death, data = resample(spain_data))
+confint(boot_covid_model_spain, level = 0.95)
+
+#growth rate
+growth_rate_spain <- coef(covid_model_spain)["days_since_first_death"]
+
+#doubling time
+doubling_time_spain_l <- log(2) / 0.2342065 #lower
+doubling_time_spain_u <- log(2) / 0.3175116 #upper
+```
+Spain: The growth rate with a 95% CI is between 0.234 and 0.318. The doubling time with a 95% CI is between 3.0 and 2.2 days. 
+
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+#line graph
+ggplot(covid, aes(x = days_since_first_death, y = deaths, color = country)) +
+  geom_line(size = 1) +
+  labs(
+    title = "Daily Reported COVID-19 Deaths Over Time",
+    x = "Days Since First Reported Death",
+    y = "Number of Deaths",
+    color = "Country"
+  ) +
+  theme_minimal()
+```
+# **Problem 3: price elasticity of demand**
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
+milk <- read.csv('milk.csv')
+
+milk$log_price <- log(milk$price)
+milk$log_sales <- log(milk$sales)
+
+model <- lm(log_sales ~ log_price, data = milk)
+boot_milk_model = do(10000)*lm(log_sales ~ log_price, data = resample(milk))
+confint(boot_milk_model, level = 0.95)
+```
+The estimated price elasticity of demand for milk is −1.62, with a 95% bootstrapped confidence interval between −1.77 and −1.45. To estimate this, I log-transformed both price and sales to linearize the power-law demand model Q=KP^β, then used linear regression to estimate β as the slope of log_sales on log_price. I computed the confidence interval using 10,000 bootstrap resamples.
+
