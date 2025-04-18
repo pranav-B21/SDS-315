@@ -63,7 +63,7 @@ diff_60
 The expected value for a 55-year old is 133.72(mL/minute) clearance rate and I calcualted this through the lm function which gives me the intercept and the slope --> clearance rate = -0.6198159(age) + 147.81292. 
 
 ### B
-For each increase in age by one, the creatine clearance rate decreases by -0.6198159 and this is the slope of the lin reg model.
+For each increase in age by one, the creatine clearance rate decreases by -0.62 ml/minute per year with age. I got this value from  the slope of the lin reg model.
 
 ### C
 The difference in creatine rate for the 40 year old with a rate of 135 is 11.97 and the difference in creatine rate for the 60 year old with a rate of 112 is 1.38. Because the differnce of the 40 year old is higher, they are more healthier for their age. I determined this by using the model to predict it based on their ages and subtracted the actual rate to find the difference. 
@@ -87,7 +87,7 @@ doubling_time_italy_l <- log(2) / 0.1586809 #lower
 doubling_time_italy_u <- log(2) / 0.2078943 #upper
 
 ```
-Italy: The growth rate with a 95% CI is between 0.159 and 0.208. The doubling time with a 95% CI is between 4.4 and 3.3 days. 
+Italy: The growth rate with a 95% CI is between 0.159 and 0.208. The doubling time with a 95% CI is between 3.3 and 4.4 days. 
 
 
 ```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
@@ -105,7 +105,7 @@ growth_rate_spain <- coef(covid_model_spain)["days_since_first_death"]
 doubling_time_spain_l <- log(2) / 0.2342065 #lower
 doubling_time_spain_u <- log(2) / 0.3175116 #upper
 ```
-Spain: The growth rate with a 95% CI is between 0.234 and 0.318. The doubling time with a 95% CI is between 3.0 and 2.2 days. 
+Spain: The growth rate with a 95% CI is between 0.234 and 0.318. The doubling time with a 95% CI is between 2.2 and 3.0 days. 
 
 ```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width=8, fig.height=5}
 #line graph
