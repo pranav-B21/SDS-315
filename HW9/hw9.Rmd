@@ -1,7 +1,7 @@
 ---
 title: "Homework 9"
 author: "Pranav Belligundu(psb898) - SDS 315 UT Austin"
-date: "(insert link)"
+date: "https://github.com/pranav-B21/SDS-315/tree/main/HW9"
 output:
   pdf_document:
     latex_engine: xelatex
